@@ -25,7 +25,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание фильма");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(java.time.Duration.ofMinutes(120));
+        film.setDuration(120);
 
         Film result = controller.createFilm(film);
         assertNotNull(result.getId());
@@ -38,7 +38,7 @@ class FilmControllerTest {
         film.setName("");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.of(2020,2,23));
-        film.setDuration(java.time.Duration.ofMinutes(263));
+        film.setDuration(263);
 
         assertThrows(ValidationException.class, () -> controller.createFilm(film));
     }
@@ -49,7 +49,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание фильма".repeat(201));
         film.setReleaseDate(LocalDate.of(2020,2,23));
-        film.setDuration(java.time.Duration.ofMinutes(263));
+        film.setDuration(263);
 
         assertThrows(ValidationException.class, () -> controller.createFilm(film));
     }
@@ -60,7 +60,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание фильма");
         film.setReleaseDate(LocalDate.of(1890,7,18));
-        film.setDuration(java.time.Duration.ofMinutes(475));
+        film.setDuration(475);
 
         assertThrows(ValidationException.class, () -> controller.createFilm(film));
     }
@@ -71,7 +71,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.of(2020,2,23));
-        film.setDuration(java.time.Duration.ofMinutes(-147));
+        film.setDuration(-147);
 
         assertThrows(ValidationException.class, () -> controller.createFilm(film));
     }
@@ -83,7 +83,7 @@ class FilmControllerTest {
         film.setName("Фильм");
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.of(2020,2,23));
-        film.setDuration(java.time.Duration.ofMinutes(475));
+        film.setDuration(475);
 
         assertThrows(NotFoundException.class, () -> controller.updateFilm(film));
     }
