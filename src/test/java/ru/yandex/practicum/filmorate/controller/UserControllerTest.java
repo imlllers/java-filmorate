@@ -35,26 +35,6 @@ class UserControllerTest {
     }
 
     @Test
-    void emptyEmail() {
-        User user = new User();
-        user.setEmail("");
-        user.setLogin("login");
-        user.setBirthday(LocalDate.of(2006, 5, 23));
-
-        assertThrows(ValidationException.class, () -> controller.createUser(user));
-    }
-
-    @Test
-    void loginWithSpaces() {
-        User user = new User();
-        user.setEmail("a@b.com");
-        user.setLogin("bad login");
-        user.setBirthday(LocalDate.of(2006, 5, 23));
-
-        assertThrows(ValidationException.class, () -> controller.createUser(user));
-    }
-
-    @Test
     void emptyNameReplacedWithLogin() {
         User user = new User();
         user.setEmail("a@b.com");
@@ -63,6 +43,7 @@ class UserControllerTest {
         user.setBirthday(LocalDate.of(2006, 5, 23));
 
         User result = controller.createUser(user);
+
         assertEquals("login", result.getName());
     }
 
@@ -73,7 +54,8 @@ class UserControllerTest {
         user.setLogin("login");
         user.setBirthday(LocalDate.now().plusDays(1));
 
-        assertThrows(ValidationException.class, () -> controller.createUser(user));
+        assertThrows(ValidationException.class,
+                () -> controller.createUser(user));
     }
 
     @Test
@@ -84,6 +66,7 @@ class UserControllerTest {
         user.setLogin("login");
         user.setBirthday(LocalDate.of(2006, 5, 23));
 
-        assertThrows(NotFoundException.class, () -> controller.updateUser(user));
+        assertThrows(NotFoundException.class,
+                () -> controller.updateUser(user));
     }
 }

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -18,24 +19,15 @@ public class UserController {
     private final Map<Long, User> users = new HashMap<>();
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
-            log.warn("Ошибка: почта пустая или не содержит символ @");
-            throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
-        }
-        if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
-            log.warn("Ошибка: логин пустой или содержит пробелы");
-            throw new ValidationException("Логин не может быть пустым и содержать пробелы");
-        }
+    public User createUser(@Valid @RequestBody User user) {
         if (user.getName() == null || user.getName().isBlank()) {
-            log.info("Имя заменено на логин");
+            log.info("Имя пользователя заменено на логин");
             user.setName(user.getLogin());
         }
-        if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Ошибка: Дата рождения указана в будущем");
+        if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.warn("Ошибка: дата рождения указана в будущем");
             throw new ValidationException("Дата рождения не может быть в будущем");
         }
-
         user.setId(getNextId());
         users.put(user.getId(), user);
 
@@ -49,19 +41,47 @@ public class UserController {
             log.warn("Ошибка: не указан ID пользователя");
             throw new ValidationException("Id должен быть указан");
         }
-        if (users.containsKey(newUser.getId())) {
-            User oldUser = users.get(newUser.getId());
 
-            oldUser.setEmail(newUser.getEmail());
-            oldUser.setLogin(newUser.getLogin());
-            oldUser.setName(newUser.getName());
-            oldUser.setBirthday(newUser.getBirthday());
+        User oldUser = users.get(newUser.getId());
 
-            log.info("Пользователь успешно изменен");
-            return oldUser;
+        if (oldUser == null) {
+            log.warn("Ошибка: пользователь с id={} не найден", newUser.getId());
+            throw new NotFoundException(
+                    "Пользователь с id (" + newUser.getId() + ") не найден"
+            );
         }
-        log.warn("Ошибка: пользователь с id={} не найден", newUser.getId());
-        throw new NotFoundException("Пользователь с id (" + newUser.getId() + ") не найден");
+        if (newUser.getEmail() != null) {
+            if (newUser.getEmail().isBlank() || !newUser.getEmail().contains("@")) {
+                log.warn("Ошибка: некорректный email");
+                throw new ValidationException("Электронная почта некорректна");
+            }
+            oldUser.setEmail(newUser.getEmail());
+        }
+        if (newUser.getLogin() != null) {
+            if (newUser.getLogin().isBlank() || newUser.getLogin().contains(" ")) {
+                log.warn("Ошибка: логин пустой или содержит пробелы");
+                throw new ValidationException("Логин не может быть пустым и содержать пробелы");
+            }
+            oldUser.setLogin(newUser.getLogin());
+        }
+        if (newUser.getName() != null) {
+            if (newUser.getName().isBlank()) {
+                log.info("Имя пользователя заменено на логин");
+                oldUser.setName(oldUser.getLogin());
+            } else {
+                oldUser.setName(newUser.getName());
+            }
+        }
+        if (newUser.getBirthday() != null) {
+            if (newUser.getBirthday().isAfter(LocalDate.now())) {
+                log.warn("Ошибка: дата рождения указана в будущем");
+                throw new ValidationException("Дата рождения не может быть в будущем");
+            }
+            oldUser.setBirthday(newUser.getBirthday());
+        }
+
+        log.info("Пользователь успешно изменен");
+        return oldUser;
     }
 
     @GetMapping
@@ -70,11 +90,10 @@ public class UserController {
     }
 
     private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
+        return users.keySet().stream()
+                .mapToLong(Long::longValue)
                 .max()
-                .orElse(0);
-        return ++currentMaxId;
+                .orElse(0) + 1;
     }
 }
+
