@@ -4,10 +4,11 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class User {
-
     private Long id;
 
     @NotBlank(message = "Электронная почта не может быть пустой")
@@ -25,4 +26,6 @@ public class User {
 
     @NotNull(message = "Дата рождения не может быть пустой")
     private LocalDate birthday;
+
+    private Set<Long> friends = new HashSet<>();
 }
