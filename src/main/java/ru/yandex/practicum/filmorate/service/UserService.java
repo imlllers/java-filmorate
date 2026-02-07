@@ -1,9 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.storage.FriendsStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -11,12 +14,11 @@ import java.util.Collection;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class UserService {
+    @Qualifier("userDbStorage")
     private final UserStorage userStorage;
-
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
+    private final FriendsStorage friendsStorage;
 
     public User create(User user) {
         validateUser(user);
@@ -35,44 +37,44 @@ public class UserService {
         return userStorage.findAll();
     }
 
-    public User findById(Long id) {
+    public User findById(Integer id) {
         return userStorage.findById(id);
     }
 
-    public void addFriend(Long id, Long friendId) {
-        User user = findById(id);
-        User friend = findById(friendId);
-
-        user.getFriends().add(friendId);
-        friend.getFriends().add(id);
+    public void addFriend(Integer id, Integer friendId) {
+        findById(id);
+        findById(friendId);
+        friendsStorage.addFriend(id, friendId);
     }
 
-    public void deleteFriend(Long id, Long friendId) {
-        User user = findById(id);
-        User friend = findById(friendId);
-
-        user.getFriends().remove(friendId);
-        friend.getFriends().remove(id);
+    public void deleteFriend(Integer id, Integer friendId) {
+        findById(id);
+        findById(friendId);
+        friendsStorage.removeFriend(id, friendId);
     }
 
-    public List<User> getFriends(Long userId) {
-        User user = findById(userId);
+    public List<User> getFriends(Integer userId) {
+        findById(userId);
+        List<Integer> friendIds = friendsStorage.getFriendsIds(userId);
 
         List<User> friends = new ArrayList<>();
-        for (Long friendId : user.getFriends()) {
+        for (Integer friendId : friendIds) {
             friends.add(findById(friendId));
         }
         return friends;
     }
 
-    public List<User> getCommonFriends(Long userId, Long otherId) {
-        User user = findById(userId);
-        User other = findById(otherId);
+    public List<User> getCommonFriends(Integer userId, Integer otherId) {
+        findById(userId);
+        findById(otherId);
+
+        List<Integer> userFriends = friendsStorage.getFriendsIds(userId);
+        List<Integer> otherFriends = friendsStorage.getFriendsIds(otherId);
 
         List<User> common = new ArrayList<>();
-        for (Long friendId : user.getFriends()) {
-            if (other.getFriends().contains(friendId)) {
-                common.add(findById(friendId));
+        for (Integer id : userFriends) {
+            if (otherFriends.contains(id)) {
+                common.add(findById(id));
             }
         }
         return common;
