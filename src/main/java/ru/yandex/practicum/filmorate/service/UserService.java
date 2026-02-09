@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -9,14 +8,12 @@ import ru.yandex.practicum.filmorate.storage.FriendsStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class UserService {
-    @Qualifier("userDbStorage")
     private final UserStorage userStorage;
     private final FriendsStorage friendsStorage;
 
@@ -55,29 +52,13 @@ public class UserService {
 
     public List<User> getFriends(Integer userId) {
         findById(userId);
-        List<Integer> friendIds = friendsStorage.getFriendsIds(userId);
-
-        List<User> friends = new ArrayList<>();
-        for (Integer friendId : friendIds) {
-            friends.add(findById(friendId));
-        }
-        return friends;
+        return friendsStorage.getFriends(userId);
     }
 
     public List<User> getCommonFriends(Integer userId, Integer otherId) {
         findById(userId);
         findById(otherId);
-
-        List<Integer> userFriends = friendsStorage.getFriendsIds(userId);
-        List<Integer> otherFriends = friendsStorage.getFriendsIds(otherId);
-
-        List<User> common = new ArrayList<>();
-        for (Integer id : userFriends) {
-            if (otherFriends.contains(id)) {
-                common.add(findById(id));
-            }
-        }
-        return common;
+        return friendsStorage.getCommonFriends(userId, otherId);
     }
 
     private void validateUser(User user) {

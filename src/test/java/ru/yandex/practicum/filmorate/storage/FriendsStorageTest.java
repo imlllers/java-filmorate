@@ -38,11 +38,11 @@ class FriendsStorageTest {
         User createdFriend = userStorage.create(friend);
 
         friendsStorage.addFriend(created.getId(), createdFriend.getId());
-        List<Integer> friends = friendsStorage.getFriendsIds(created.getId());
-        assertThat(friends).contains(createdFriend.getId());
+        List<User> friends = friendsStorage.getFriends(created.getId());
+        assertThat(friends).extracting(User::getId).contains(createdFriend.getId());
 
         friendsStorage.removeFriend(created.getId(), createdFriend.getId());
-        List<Integer> afterRemove = friendsStorage.getFriendsIds(created.getId());
-        assertThat(afterRemove).doesNotContain(createdFriend.getId());
+        List<User> afterRemove = friendsStorage.getFriends(created.getId());
+        assertThat(afterRemove).extracting(User::getId).doesNotContain(createdFriend.getId());
     }
 }

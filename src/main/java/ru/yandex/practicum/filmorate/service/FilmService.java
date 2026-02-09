@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -15,7 +14,6 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class FilmService {
-    @Qualifier("filmDbStorage")
     private final FilmStorage filmStorage;
     private final UserService userService;
     private final LikesStorage likesStorage;
@@ -55,14 +53,7 @@ public class FilmService {
     }
 
     public List<Film> getTopFilms(int count) {
-        return filmStorage.findAll().stream()
-                .sorted((f1, f2) ->
-                        Integer.compare(
-                                likesStorage.countLikes(f2.getId()),
-                                likesStorage.countLikes(f1.getId())
-                        ))
-                .limit(count)
-                .toList();
+        return filmStorage.findTop(count);
     }
 
     private void validateFilm(Film film) {

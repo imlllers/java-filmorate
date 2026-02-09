@@ -147,6 +147,38 @@ public class FilmDbStorage implements FilmStorage {
         return film;
     }
 
+    @Override
+    public List<Film> findTop(int count) {
+        String sql = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, " +
+                "f.mpa_id, m.name AS mpa_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, f.mpa_id, m.name " +
+                "ORDER BY COUNT(l.user_id) DESC, f.id ASC " +
+                "LIMIT ?";
+
+        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, count);
+
+        String genreSql = "SELECT g.id, g.name " +
+                "FROM film_genres fg " +
+                "JOIN genres g ON fg.genre_id = g.id " +
+                "WHERE fg.film_id = ? " +
+                "ORDER BY g.id";
+
+        for (Film f : films) {
+            List<Genre> genres = jdbcTemplate.query(genreSql, (rs, rowNum) -> {
+                Genre g = new Genre();
+                g.setId(rs.getInt("id"));
+                g.setName(rs.getString("name"));
+                return g;
+            }, f.getId());
+            f.setGenres(new LinkedHashSet<>(genres));
+        }
+
+        return films;
+    }
+
     private void validateMpaAndGenres(Film film) {
         if (film.getMpa() != null) {
             Integer mpaId = film.getMpa().getId();
