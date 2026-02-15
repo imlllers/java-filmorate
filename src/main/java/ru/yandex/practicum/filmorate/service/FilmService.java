@@ -1,24 +1,23 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.LikesStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserService userService;
+    private final LikesStorage likesStorage;
     private static final LocalDate FIRST_DATE = LocalDate.of(1895, 12, 28);
-
-    public FilmService(FilmStorage filmStorage, UserService userService) {
-        this.filmStorage = filmStorage;
-        this.userService = userService;
-    }
 
     public Film create(Film film) {
         validateFilm(film);
@@ -37,28 +36,24 @@ public class FilmService {
         return filmStorage.findAll();
     }
 
-    public Film findById(Long id) {
+    public Film findById(Integer id) {
         return filmStorage.findById(id);
     }
 
-    public void addLike(Long id, Long userId) {
-        Film film = findById(id);
+    public void addLike(Integer id, Integer userId) {
+        findById(id);
         userService.findById(userId);
-        film.getLikes().add(userId);
+        likesStorage.addLike(id, userId);
     }
 
-    public void removeLike(Long id, Long userId) {
-        Film film = findById(id);
+    public void removeLike(Integer id, Integer userId) {
+        findById(id);
         userService.findById(userId);
-        film.getLikes().remove(userId);
+        likesStorage.removeLike(id, userId);
     }
 
     public List<Film> getTopFilms(int count) {
-        return filmStorage.findAll().stream()
-                .sorted((f1, f2) ->
-                        Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
-                .limit(count)
-                .toList();
+        return filmStorage.findTop(count);
     }
 
     private void validateFilm(Film film) {
@@ -69,4 +64,3 @@ public class FilmService {
         }
     }
 }
-
