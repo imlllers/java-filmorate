@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
+import ru.yandex.practicum.filmorate.storage.mappers.GenreRowMapper;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -24,6 +25,7 @@ import java.util.Set;
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmRowMapper filmRowMapper = new FilmRowMapper();
+    private final GenreRowMapper genreRowMapper = new GenreRowMapper();
 
     @Override
     public Film create(Film film) {
@@ -47,13 +49,7 @@ public class FilmDbStorage implements FilmStorage {
         }, keyHolder);
 
         film.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
-
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            String genreSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
-            for (Genre g : film.getGenres()) {
-                jdbcTemplate.update(genreSql, film.getId(), g.getId());
-            }
-        }
+        saveGenres(film.getId(), film.getGenres());
 
         return findById(film.getId());
     }
@@ -77,12 +73,7 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", film.getId());
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            String genreSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
-            for (Genre g : film.getGenres()) {
-                jdbcTemplate.update(genreSql, film.getId(), g.getId());
-            }
-        }
+        saveGenres(film.getId(), film.getGenres());
 
         return findById(film.getId());
     }
@@ -95,22 +86,7 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN mpa m ON f.mpa_id = m.id";
 
         List<Film> films = jdbcTemplate.query(sql, filmRowMapper);
-
-        String genreSql = "SELECT g.id, g.name " +
-                "FROM film_genres fg " +
-                "JOIN genres g ON fg.genre_id = g.id " +
-                "WHERE fg.film_id = ? " +
-                "ORDER BY g.id";
-
-        for (Film f : films) {
-            List<Genre> genres = jdbcTemplate.query(genreSql, (rs, rowNum) -> {
-                Genre g = new Genre();
-                g.setId(rs.getInt("id"));
-                g.setName(rs.getString("name"));
-                return g;
-            }, f.getId());
-            f.setGenres(new LinkedHashSet<>(genres));
-        }
+        fillGenresForFilms(films);
 
         return films;
     }
@@ -129,21 +105,7 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         Film film = films.getFirst();
-
-        String genreSql = "SELECT g.id, g.name " +
-                "FROM film_genres fg " +
-                "JOIN genres g ON fg.genre_id = g.id " +
-                "WHERE fg.film_id = ? " +
-                "ORDER BY g.id";
-
-        List<Genre> genres = jdbcTemplate.query(genreSql, (rs, rowNum) -> {
-            Genre g = new Genre();
-            g.setId(rs.getInt("id"));
-            g.setName(rs.getString("name"));
-            return g;
-        }, id);
-
-        film.setGenres(new LinkedHashSet<>(genres));
+        fillGenres(film);
         return film;
     }
 
@@ -159,24 +121,37 @@ public class FilmDbStorage implements FilmStorage {
                 "LIMIT ?";
 
         List<Film> films = jdbcTemplate.query(sql, filmRowMapper, count);
+        fillGenresForFilms(films);
 
-        String genreSql = "SELECT g.id, g.name " +
+        return films;
+    }
+
+    private void fillGenres(Film film) {
+        String sql = "SELECT g.id, g.name " +
                 "FROM film_genres fg " +
                 "JOIN genres g ON fg.genre_id = g.id " +
                 "WHERE fg.film_id = ? " +
                 "ORDER BY g.id";
 
-        for (Film f : films) {
-            List<Genre> genres = jdbcTemplate.query(genreSql, (rs, rowNum) -> {
-                Genre g = new Genre();
-                g.setId(rs.getInt("id"));
-                g.setName(rs.getString("name"));
-                return g;
-            }, f.getId());
-            f.setGenres(new LinkedHashSet<>(genres));
-        }
+        List<Genre> genres = jdbcTemplate.query(sql, genreRowMapper, film.getId());
+        film.setGenres(new LinkedHashSet<>(genres));
+    }
 
-        return films;
+    private void fillGenresForFilms(Collection<Film> films) {
+        for (Film film : films) {
+            fillGenres(film);
+        }
+    }
+
+    private void saveGenres(Integer filmId, Set<Genre> genres) {
+        if (genres == null || genres.isEmpty()) {
+            return;
+        }
+        String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
+
+        for (Genre genre : genres) {
+            jdbcTemplate.update(sql, filmId, genre.getId());
+        }
     }
 
     private void validateMpaAndGenres(Film film) {
