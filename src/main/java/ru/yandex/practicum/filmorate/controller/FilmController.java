@@ -46,6 +46,12 @@ public class FilmController {
         return filmService.findById(id);
     }
 
+    @GetMapping("/search")
+    public Collection<Film> getFilmsByName(@RequestParam String query) {
+        log.info("Поиск фильмов по названию");
+        return filmService.findByName(query);
+    }
+
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable Integer id, @PathVariable Integer userId) {
         log.info("Добавление лайка");

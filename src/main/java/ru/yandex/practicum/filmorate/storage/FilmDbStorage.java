@@ -87,6 +87,7 @@ public class FilmDbStorage implements FilmStorage {
 
         List<Film> films = jdbcTemplate.query(sql, filmRowMapper);
         fillGenresForFilms(films);
+        fillLikesForFilms(films);
 
         return films;
     }
@@ -106,6 +107,7 @@ public class FilmDbStorage implements FilmStorage {
 
         Film film = films.getFirst();
         fillGenres(film);
+        fillLikes(film);
         return film;
     }
 
@@ -122,7 +124,27 @@ public class FilmDbStorage implements FilmStorage {
 
         List<Film> films = jdbcTemplate.query(sql, filmRowMapper, count);
         fillGenresForFilms(films);
+        fillLikesForFilms(films);
 
+        return films;
+    }
+
+    @Override
+    public List<Film> findByName(String name) {
+        String sql = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, " +
+                "f.mpa_id, m.name AS mpa_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "WHERE LOWER(f.name) LIKE LOWER(?) " +
+                "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, f.mpa_id, m.name " +
+                "ORDER BY COUNT(l.user_id) DESC, f.id ASC";
+
+        String search = "%" + name + "%";
+        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, search);
+
+        fillGenresForFilms(films);
+        fillLikesForFilms(films);
         return films;
     }
 
@@ -140,6 +162,18 @@ public class FilmDbStorage implements FilmStorage {
     private void fillGenresForFilms(Collection<Film> films) {
         for (Film film : films) {
             fillGenres(film);
+        }
+    }
+
+    private void fillLikes(Film film) {
+        String sql = "SELECT user_id FROM likes WHERE film_id = ? ORDER BY user_id";
+        List<Integer> userIds = jdbcTemplate.queryForList(sql, Integer.class, film.getId());
+        film.setLikes(new LinkedHashSet<>(userIds));
+    }
+
+    private void fillLikesForFilms(Collection<Film> films) {
+        for (Film film : films) {
+            fillLikes(film);
         }
     }
 

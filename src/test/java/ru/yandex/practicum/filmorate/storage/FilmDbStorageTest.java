@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -19,13 +20,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @JdbcTest
 @AutoConfigureTestDatabase
-@Import(FilmDbStorage.class)
+@Import({FilmDbStorage.class, LikesStorage.class, UserDbStorage.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FilmDbStorageTest {
     private final FilmDbStorage filmStorage;
+    private final LikesStorage likesStorage;
+    private final UserDbStorage userStorage;
 
     @Test
     void createAndFindByIdWithGenres() {
+        User user = new User();
+        user.setEmail("film-like@mail.ru");
+        user.setLogin("filmLike");
+        user.setName("Film Like");
+        user.setBirthday(LocalDate.of(1990, 1, 1));
+        User createdUser = userStorage.create(user);
+
         Film film = new Film();
         film.setName("Film");
         film.setDescription("Desc");
@@ -43,10 +53,12 @@ class FilmDbStorageTest {
         film.setGenres(genres);
 
         Film created = filmStorage.create(film);
+        likesStorage.addLike(created.getId(), createdUser.getId());
         Film found = filmStorage.findById(created.getId());
 
         assertThat(found.getId()).isEqualTo(created.getId());
         assertThat(found.getGenres()).hasSize(1);
+        assertThat(found.getLikes()).contains(createdUser.getId());
     }
 
     @Test

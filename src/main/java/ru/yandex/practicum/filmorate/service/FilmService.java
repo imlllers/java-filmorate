@@ -40,6 +40,10 @@ public class FilmService {
         return filmStorage.findById(id);
     }
 
+    public Collection<Film> findByName(String query) {
+        return filmStorage.findByName(query);
+    }
+
     public void addLike(Integer id, Integer userId) {
         findById(id);
         userService.findById(userId);
