@@ -57,3 +57,6 @@ MERGE INTO likes (user_id, film_id) KEY (user_id, film_id) VALUES
 (1, 5),
 (2, 5),
 (3, 5);
+
+ALTER TABLE users ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE films ALTER COLUMN id RESTART WITH 100;
