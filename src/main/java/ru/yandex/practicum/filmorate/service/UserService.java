@@ -3,8 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.FriendsStorage;
+import ru.yandex.practicum.filmorate.storage.LikesStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
@@ -16,6 +19,8 @@ import java.util.List;
 public class UserService {
     private final UserStorage userStorage;
     private final FriendsStorage friendsStorage;
+    private final LikesStorage likesStorage;
+    private final FilmStorage filmStorage;
 
     public User create(User user) {
         validateUser(user);
@@ -59,6 +64,20 @@ public class UserService {
         findById(userId);
         findById(otherId);
         return friendsStorage.getCommonFriends(userId, otherId);
+    }
+
+    public List<Film> getRecommendations(Integer userId) {
+        findById(userId);
+        int similarUserId = likesStorage.findSimilarUser(userId);
+        List<Integer> filmIds = likesStorage.findRecommendedFilm(userId, similarUserId);
+
+        if (filmIds.isEmpty()) {
+            return List.of();
+        }
+
+        return filmIds.stream()
+                .map(filmStorage::findById)
+                .toList();
     }
 
     private void validateUser(User user) {
