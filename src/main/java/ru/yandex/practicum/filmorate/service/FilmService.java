@@ -73,6 +73,12 @@ public class FilmService {
         return filmStorage.findPopularFilmsByGenre(genre, count);
     }
 
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        userService.findById(userId);
+        userService.findById(friendId);
+        return filmStorage.findCommonFilms(userId, friendId);
+    }
+
     private void validateFilm(Film film) {
         if (film.getReleaseDate().isBefore(FIRST_DATE)) {
             throw new ValidationException(
