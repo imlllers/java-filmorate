@@ -59,9 +59,18 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getTopFilms(@RequestParam(defaultValue = "10") int count) {
-        log.info("Получение топа фильмов");
-        return filmService.getTopFilms(count);
+    public List<Film> getPopularFilmsByGenreAndYear(@RequestParam(required = false)  Integer genreId,
+                                                    @RequestParam(required = false) Integer year,
+                                                    @RequestParam(defaultValue = "10") int count) {
+       if (year != null && genreId != null) {
+           return filmService.getPopularFilmsByGenreAndYear(genreId, year, count);
+       } else if (genreId != null) {
+           return filmService.getPopularFilmsByGenre(genreId, count);
+       } else if (year != null) {
+           return filmService.getPopularFilmsByYear(year, count);
+       } else {
+           return filmService.getTopFilms(count); // в случае если и поле year и genreId отсутствуют, выведется 10 популярных фильмов
+       }
     }
 }
 

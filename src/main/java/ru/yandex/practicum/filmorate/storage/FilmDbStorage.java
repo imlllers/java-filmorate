@@ -14,11 +14,7 @@ import ru.yandex.practicum.filmorate.storage.mappers.GenreRowMapper;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Types;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Repository
 @AllArgsConstructor
@@ -126,6 +122,74 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
+    @Override
+    public List<Film> findPopularFilmsByGenreAndYear(Genre genre, int year, int count) {
+        String sql = "SELECT f.*, m.name as mpa_name, COUNT(l.user_id) AS likes_count " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "WHERE fg.genre_id = ? AND YEAR(f.releaseDate) = ? " +
+                "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, f.mpa_id, m.id, m.name " +
+                "ORDER BY likes_count DESC";
+
+        if (count >= 10) {
+            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, genre.getId(), year);
+            fillGenresForFilms(films);
+            return films;
+        } else {
+            sql += " LIMIT ?";
+            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, genre.getId(), year, count);
+            fillGenresForFilms(films);
+            return films;
+        }
+    }
+
+    @Override
+    public List<Film> findPopularFilmsByGenre(Genre genre, int count) {
+        String sql = "SELECT f.*, m.name as mpa_name, COUNT(l.user_id) AS likes_count " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "WHERE fg.genre_id = ? " +
+                "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, f.mpa_id, m.id, m.name " +
+                "ORDER BY likes_count DESC";
+
+        if (count >= 10) {
+            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, genre.getId());
+            fillGenresForFilms(films);
+            return films;
+        } else {
+            sql += " LIMIT ?";
+            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, genre.getId(), count);
+            fillGenresForFilms(films);
+            return films;
+        }
+    }
+
+    @Override
+    public List<Film> findPopularFilmsByYear(int year, int count) {
+        String sql = "SELECT f.*, m.name as mpa_name, COUNT(l.user_id) AS likes_count " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "WHERE YEAR(f.releaseDate) = ? " +
+                "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, f.mpa_id, m.id, m.name " +
+                "ORDER BY likes_count DESC";
+
+        if (count >= 10) {
+            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, year);
+            fillGenresForFilms(films);
+            return films;
+        } else {
+            sql += " LIMIT ?";
+            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, year, count);
+            fillGenresForFilms(films);
+            return films;
+        }
+    }
+
     private void fillGenres(Film film) {
         String sql = "SELECT g.id, g.name " +
                 "FROM film_genres fg " +
@@ -183,5 +247,17 @@ public class FilmDbStorage implements FilmStorage {
                 throw new NotFoundException("Жанр с id=" + genreId + " не найден");
             }
         }
+    }
+
+    private void loadLikesAndGenres(Film film) {
+        String likesSql = "SELECT user_id FROM likes WHERE film_id = ?";
+        List<Integer> likes = jdbcTemplate.queryForList(likesSql, Integer.class, film.getId());
+        film.setLikes(new HashSet<>(likes));
+
+        String genresSql = "SELECT g.* FROM genres g " +
+                "JOIN film_genres fg ON g.id = fg.genre_id " +
+                "WHERE fg.film_id = ?";
+        List<Genre> genres = jdbcTemplate.query(genresSql, new GenreRowMapper(), film.getId());
+        film.setGenres(new HashSet<>(genres));
     }
 }
