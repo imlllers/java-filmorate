@@ -3,11 +3,15 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.GenreService;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
@@ -59,9 +63,18 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getTopFilms(@RequestParam(defaultValue = "10") int count) {
-        log.info("Получение топа фильмов");
-        return filmService.getTopFilms(count);
+    public List<Film> getPopularFilmsByGenreAndYear(@RequestParam(required = false)  Integer genreId,
+                                                    @RequestParam(required = false) Integer year,
+                                                    @RequestParam(defaultValue = "10") int count) {
+       if(year != null && genreId != null) {
+           return filmService.getPopularFilmsByGenreAndYear(genreId, year, count);
+       } else if(genreId != null) {
+           return filmService.getPopularFilmsByGenre(genreId, count);
+       } else if (year != null) {
+           return filmService.getPopularFilmsByYear(year, count);
+       } else {
+           return filmService.getTopFilms(count); // в случае если и поле year и genreId отсутствуют, выведется 10 популярных фильмов
+       }
     }
 }
 
