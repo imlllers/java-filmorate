@@ -15,4 +15,8 @@ public interface FilmStorage {
     Film findById(Integer id);
 
     List<Film> findTop(int count);
+
+    void delete(Integer id);
+
+    void removeAllGenres(Integer filmId);
 }

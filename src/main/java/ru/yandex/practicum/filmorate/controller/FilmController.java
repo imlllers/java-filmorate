@@ -63,5 +63,11 @@ public class FilmController {
         log.info("Получение топа фильмов");
         return filmService.getTopFilms(count);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable Integer id) {
+        log.info("Удаление фильма с id={}", id);
+        filmService.deleteFilm(id);
+    }
 }
 

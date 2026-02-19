@@ -64,4 +64,10 @@ public class UserController {
         log.info("Получение общих друзей");
         return userService.getCommonFriends(id, otherId);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Integer id) {
+        log.info("Удаление пользователя с id={}", id);
+        userService.deleteUser(id);
+    }
 }

@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -54,6 +55,16 @@ public class FilmService {
 
     public List<Film> getTopFilms(int count) {
         return filmStorage.findTop(count);
+    }
+
+    @Transactional
+    public void deleteFilm(Integer id) {
+        findById(id);
+
+        likesStorage.removeAllFilmLikes(id);
+        filmStorage.removeAllGenres(id);
+
+        filmStorage.delete(id);
     }
 
     private void validateFilm(Film film) {

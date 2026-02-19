@@ -184,4 +184,14 @@ public class FilmDbStorage implements FilmStorage {
             }
         }
     }
+
+    @Override
+    public void removeAllGenres(Integer filmId) {
+        jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", filmId);
+    }
+
+    @Override
+    public void delete(Integer id) {
+        jdbcTemplate.update("DELETE FROM films WHERE id = ?", id);
+    }
 }

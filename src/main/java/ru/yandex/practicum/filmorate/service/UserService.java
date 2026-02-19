@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FriendsStorage;
+import ru.yandex.practicum.filmorate.storage.LikesStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ import java.util.List;
 public class UserService {
     private final UserStorage userStorage;
     private final FriendsStorage friendsStorage;
+    private final LikesStorage likesStorage;
 
     public User create(User user) {
         validateUser(user);
@@ -59,6 +61,16 @@ public class UserService {
         findById(userId);
         findById(otherId);
         return friendsStorage.getCommonFriends(userId, otherId);
+    }
+
+    public void deleteUser(Integer userId) {
+        findById(userId);
+
+        likesStorage.removeAllUserLikes(userId);
+
+        friendsStorage.removeAllUserFriends(userId);
+
+        userStorage.delete(userId);
     }
 
     private void validateUser(User user) {

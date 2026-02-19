@@ -21,6 +21,16 @@ public class LikesStorage {
         jdbcTemplate.update(sql, userId, filmId);
     }
 
+    public void removeAllFilmLikes(Integer filmId) {
+        String sql = "DELETE FROM likes WHERE film_id = ?";
+        jdbcTemplate.update(sql, filmId);
+    }
+
+    public void removeAllUserLikes(Integer userId) {
+        String sql = "DELETE FROM likes WHERE user_id = ?";
+        jdbcTemplate.update(sql, userId);
+    }
+
     public List<Integer> getLikesUserIds(Integer filmId) {
         String sql = "SELECT user_id FROM likes WHERE film_id = ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getInt("user_id"), filmId);
