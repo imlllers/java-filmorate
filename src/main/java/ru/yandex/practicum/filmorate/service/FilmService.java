@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.LikesStorage;
 
 import java.time.LocalDate;
@@ -17,6 +19,7 @@ import java.util.List;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserService userService;
+    private final GenreStorage genreStorage;
     private final LikesStorage likesStorage;
     private static final LocalDate FIRST_DATE = LocalDate.of(1895, 12, 28);
 
@@ -55,6 +58,26 @@ public class FilmService {
 
     public List<Film> getTopFilms(int count) {
         return filmStorage.findTop(count);
+    }
+
+    public List<Film> getPopularFilmsByGenreAndYear(int genreId, int year, int count) {
+        Genre genre = genreStorage.findById(genreId);
+        return filmStorage.findPopularFilmsByGenreAndYear(genre, year, count);
+    }
+
+    public List<Film> getPopularFilmsByYear(int year, int count) {
+        return filmStorage.findPopularFilmsByYear(year, count);
+    }
+
+    public List<Film> getPopularFilmsByGenre(int genreId, int count) {
+        Genre genre = genreStorage.findById(genreId);
+        return filmStorage.findPopularFilmsByGenre(genre, count);
+    }
+
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        userService.findById(userId);
+        userService.findById(friendId);
+        return filmStorage.findCommonFilms(userId, friendId);
     }
 
     @Transactional
