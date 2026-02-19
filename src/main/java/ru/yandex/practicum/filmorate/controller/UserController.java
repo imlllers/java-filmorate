@@ -71,4 +71,10 @@ public class UserController {
         log.info("Получение рекомендаций");
         return userService.getRecommendations(id);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Integer id) {
+        log.info("Удаление пользователя с id={}", id);
+        userService.deleteUser(id);
+    }
 }

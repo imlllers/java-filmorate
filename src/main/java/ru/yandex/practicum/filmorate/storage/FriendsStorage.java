@@ -42,4 +42,9 @@ public class FriendsStorage {
                 "ORDER BY u.id";
         return jdbcTemplate.query(sql, userRowMapper, userId, otherId);
     }
+
+    public void removeAllUserFriends(Integer userId) {
+        String sql = "DELETE FROM friends WHERE user_id = ? OR friend_id = ?";
+        jdbcTemplate.update(sql, userId, userId);
+    }
 }
