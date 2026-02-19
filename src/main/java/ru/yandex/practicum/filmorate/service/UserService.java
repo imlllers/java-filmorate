@@ -20,7 +20,6 @@ public class UserService {
     private final UserStorage userStorage;
     private final FriendsStorage friendsStorage;
     private final LikesStorage likesStorage;
-    private final LikesStorage likesStorage;
     private final FilmStorage filmStorage;
 
     public User create(User user) {
