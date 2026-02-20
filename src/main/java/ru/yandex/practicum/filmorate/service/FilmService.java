@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.LikesStorage;
@@ -21,6 +22,7 @@ public class FilmService {
     private final UserService userService;
     private final GenreStorage genreStorage;
     private final LikesStorage likesStorage;
+    private final DirectorStorage directorStorage;
     private static final LocalDate FIRST_DATE = LocalDate.of(1895, 12, 28);
 
     public Film create(Film film) {
@@ -78,6 +80,19 @@ public class FilmService {
         return filmStorage.findPopularFilmsByGenre(genre, count);
     }
 
+    public Film addDirectorToFilm(Integer filmId, Integer directorId) {
+        Film film = filmStorage.findById(filmId);
+        directorStorage.findById(directorId);
+        directorStorage.addDirectorToFilm(filmId, directorId);
+        return filmStorage.findById(filmId);
+    }
+
+    public Film removeAllDirectorsFromFilm(Integer filmId) {
+        Film film = filmStorage.findById(filmId);
+        directorStorage.removeAllDirectorsFromFilm(filmId);
+        return film;
+    }
+
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
         userService.findById(userId);
         userService.findById(friendId);
@@ -92,6 +107,31 @@ public class FilmService {
         filmStorage.removeAllGenres(id);
 
         filmStorage.delete(id);
+    }
+
+    public Film removeDirectorFromFilm(Integer filmId, Integer directorId) {
+        if (filmId == null || filmId <= 0) {
+            throw new ValidationException("Некорректный ID фильма");
+        }
+        if (directorId == null || directorId <= 0) {
+            throw new ValidationException("Некорректный ID режиссёра");
+        }
+
+        Film film = filmStorage.findById(filmId);
+        directorStorage.findById(directorId);
+        return filmStorage.removeDirectorFromFilm(filmId, directorId);
+    }
+
+    public List<Film> getFilmsByDirector(Integer directorId, String sortBy) {
+        if (directorId == null || directorId <= 0) {
+            throw new ValidationException("Некорректный ID режиссёра");
+        }
+        if (!sortBy.equals("year") && !sortBy.equals("likes")) {
+            throw new ValidationException("Неуказан параметр sortBy");
+        }
+
+        directorStorage.findById(directorId);
+        return filmStorage.getFilmsByDirector(directorId, sortBy);
     }
 
     private void validateFilm(Film film) {
