@@ -79,6 +79,12 @@ public class FilmController {
         return filmService.getCommonFilms(userId, friendId);
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable Integer id) {
+        log.info("Удаление фильма с id={}", id);
+        filmService.deleteFilm(id);
+    }
+
     @PutMapping("/{id}/directors/{directorId}")
     public Film addDirectorToFilm(@PathVariable Integer id, @PathVariable Integer directorId) {
         log.info("Добавление режиссёра {} к фильму {}", directorId, id);
