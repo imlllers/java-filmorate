@@ -78,5 +78,16 @@ public class FilmController {
            return filmService.getTopFilms(count); // в случае если и поле year и genreId отсутствуют, выведется 10 популярных фильмов
        }
     }
-}
 
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(@RequestParam Integer userId, @RequestParam Integer friendId) {
+        log.info("Получение общих фильмов пользователей {} и {}", userId, friendId);
+        return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable Integer id) {
+        log.info("Удаление фильма с id={}", id);
+        filmService.deleteFilm(id);
+    }
+}
