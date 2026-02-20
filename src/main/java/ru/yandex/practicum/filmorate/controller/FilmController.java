@@ -96,4 +96,17 @@ public class FilmController {
         log.info("Удаление фильма с id={}", id);
         filmService.deleteFilm(id);
     }
+
+    @DeleteMapping("/{id}/directors")
+    public Film removeAllDirectorsFromFilm(@PathVariable Integer id) {
+        log.info("Удаление всех режиссёров из фильма {}", id);
+        return filmService.removeAllDirectorsFromFilm(id);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> getFilmsByDirector(@PathVariable Integer directorId,
+                                         @RequestParam(defaultValue = "year") String sortBy) {
+        log.info("Получение фильмов режиссёра {} с сортировкой по {}", directorId, sortBy);
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
 }
