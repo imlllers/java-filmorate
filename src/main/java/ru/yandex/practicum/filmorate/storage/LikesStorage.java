@@ -66,14 +66,4 @@ public class LikesStorage {
 
         return jdbcTemplate.queryForList(sql, Integer.class, similarUserId, userId);
     }
-
-    public void removeAllFilmLikes(Integer filmId) {
-        String sql = "DELETE FROM likes WHERE film_id = ?";
-        jdbcTemplate.update(sql, filmId);
-    }
-
-    public void removeAllUserLikes(Integer userId) {
-        String sql = "DELETE FROM likes WHERE user_id = ?";
-        jdbcTemplate.update(sql, userId);
-    }
 }

@@ -28,8 +28,4 @@ public interface FilmStorage {
     List<Film> getFilmsByDirector(Integer directorId, String sortBy);
 
     Film removeDirectorFromFilm(Integer filmId, Integer directorId);
-
-    void delete(Integer id);
-
-    void removeAllGenres(Integer filmId);
 }

@@ -88,14 +88,4 @@ public class UserService {
             throw new ValidationException("Дата рождения не может быть в будущем");
         }
     }
-
-    public void deleteUser(Integer userId) {
-        findById(userId);
-
-        likesStorage.removeAllUserLikes(userId);
-
-        friendsStorage.removeAllUserFriends(userId);
-
-        userStorage.delete(userId);
-    }
 }
