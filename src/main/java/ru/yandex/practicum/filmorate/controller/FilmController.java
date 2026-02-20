@@ -59,18 +59,18 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopularFilmsByGenreAndYear(@RequestParam(required = false)  Integer genreId,
+    public List<Film> getPopularFilmsByGenreAndYear(@RequestParam(required = false) Integer genreId,
                                                     @RequestParam(required = false) Integer year,
                                                     @RequestParam(defaultValue = "10") int count) {
-       if (year != null && genreId != null) {
-           return filmService.getPopularFilmsByGenreAndYear(genreId, year, count);
-       } else if (genreId != null) {
-           return filmService.getPopularFilmsByGenre(genreId, count);
-       } else if (year != null) {
-           return filmService.getPopularFilmsByYear(year, count);
-       } else {
-           return filmService.getTopFilms(count); // в случае если и поле year и genreId отсутствуют, выведется 10 популярных фильмов
-       }
+        if (year != null && genreId != null) {
+            return filmService.getPopularFilmsByGenreAndYear(genreId, year, count);
+        } else if (genreId != null) {
+            return filmService.getPopularFilmsByGenre(genreId, count);
+        } else if (year != null) {
+            return filmService.getPopularFilmsByYear(year, count);
+        } else {
+            return filmService.getTopFilms(count);
+        }
     }
 
     @GetMapping("/common")
@@ -79,9 +79,34 @@ public class FilmController {
         return filmService.getCommonFilms(userId, friendId);
     }
 
+    @PutMapping("/{id}/directors/{directorId}")
+    public Film addDirectorToFilm(@PathVariable Integer id, @PathVariable Integer directorId) {
+        log.info("Добавление режиссёра {} к фильму {}", directorId, id);
+        return filmService.addDirectorToFilm(id, directorId);
+    }
+
+    @DeleteMapping("/{id}/directors/{directorId}")
+    public Film removeDirectorFromFilm(@PathVariable Integer id, @PathVariable Integer directorId) {
+        log.info("Удаление режиссёра {} из фильма {}", directorId, id);
+        return filmService.removeDirectorFromFilm(id, directorId);
+    }
+
     @DeleteMapping("/{id}")
     public void deleteFilm(@PathVariable Integer id) {
         log.info("Удаление фильма с id={}", id);
         filmService.deleteFilm(id);
+    }
+
+    @DeleteMapping("/{id}/directors")
+    public Film removeAllDirectorsFromFilm(@PathVariable Integer id) {
+        log.info("Удаление всех режиссёров из фильма {}", id);
+        return filmService.removeAllDirectorsFromFilm(id);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> getFilmsByDirector(@PathVariable Integer directorId,
+                                         @RequestParam(defaultValue = "year") String sortBy) {
+        log.info("Получение фильмов режиссёра {} с сортировкой по {}", directorId, sortBy);
+        return filmService.getFilmsByDirector(directorId, sortBy);
     }
 }
