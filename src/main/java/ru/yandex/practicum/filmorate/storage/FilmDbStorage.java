@@ -335,4 +335,26 @@ public class FilmDbStorage implements FilmStorage {
             }
         }
     }
+
+    private void loadLikesAndGenres(Film film) {
+        String likesSql = "SELECT user_id FROM likes WHERE film_id = ?";
+        List<Integer> likes = jdbcTemplate.queryForList(likesSql, Integer.class, film.getId());
+        film.setLikes(new HashSet<>(likes));
+
+        String genresSql = "SELECT g.* FROM genres g " +
+                "JOIN film_genres fg ON g.id = fg.genre_id " +
+                "WHERE fg.film_id = ?";
+        List<Genre> genres = jdbcTemplate.query(genresSql, new GenreRowMapper(), film.getId());
+        film.setGenres(new HashSet<>(genres));
+    }
+
+    @Override
+    public void removeAllGenres(Integer filmId) {
+        jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", filmId);
+    }
+
+    @Override
+    public void delete(Integer id) {
+        jdbcTemplate.update("DELETE FROM films WHERE id = ?", id);
+    }
 }
