@@ -47,9 +47,12 @@ public class FilmController {
     }
 
     @GetMapping("/search")
-    public Collection<Film> getFilmsByName(@RequestParam String query) {
-        log.info("Поиск фильмов по названию");
-        return filmService.findByName(query);
+    public Collection<Film> search(
+            @RequestParam String query,
+            @RequestParam String by) {
+
+        log.info("Поиск фильмов по названию и режиссеру");
+        return filmService.findByName(query, by);
     }
 
     @PutMapping("/{id}/like/{userId}")
