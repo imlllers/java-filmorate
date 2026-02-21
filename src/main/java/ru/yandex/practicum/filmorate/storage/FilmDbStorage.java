@@ -90,6 +90,7 @@ public class FilmDbStorage implements FilmStorage {
 
         List<Film> films = jdbcTemplate.query(sql, filmRowMapper);
         fillGenresForFilms(films);
+        fillLikesForFilms(films);
         fillDirectorsForFilms(films);
 
         return films;
@@ -110,6 +111,7 @@ public class FilmDbStorage implements FilmStorage {
 
         Film film = films.getFirst();
         fillGenres(film);
+        fillLikes(film);
         fillDirectors(film);
         return film;
     }
@@ -127,6 +129,45 @@ public class FilmDbStorage implements FilmStorage {
 
         List<Film> films = jdbcTemplate.query(sql, filmRowMapper, count);
         fillGenresForFilms(films);
+        fillLikesForFilms(films);
+        fillDirectorsForFilms(films);
+
+        return films;
+    }
+
+    @Override
+    public List<Film> findByNameAndDirector(String query, String by) {
+        String search = "%" + query + "%";
+
+        String sql = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, " +
+                "f.mpa_id, m.name AS mpa_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "LEFT JOIN films_directors fd ON f.id = fd.film_id " +
+                "LEFT JOIN directors d ON fd.director_id = d.id ";
+
+        switch (by) {
+            case "title" -> sql += "WHERE LOWER(f.name) LIKE LOWER(?) ";
+            case "director" -> sql += "WHERE LOWER(d.name) LIKE LOWER(?) ";
+            case "director,title", "title,director" ->
+                    sql += "WHERE LOWER(f.name) LIKE LOWER(?) OR LOWER(d.name) LIKE LOWER(?) ";
+            case null, default -> throw new IllegalArgumentException("Unknown by: " + by);
+        }
+
+        sql += "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, f.mpa_id, m.name " +
+                "ORDER BY COUNT(l.user_id) DESC, f.id ASC";
+
+        List<Film> films;
+
+        if (by.contains(",")) {
+            films = jdbcTemplate.query(sql, filmRowMapper, search, search);
+        } else {
+            films = jdbcTemplate.query(sql, filmRowMapper, search);
+        }
+
+        fillGenresForFilms(films);
+        fillLikesForFilms(films);
         fillDirectorsForFilms(films);
 
         return films;
@@ -265,6 +306,18 @@ public class FilmDbStorage implements FilmStorage {
     private void fillGenresForFilms(Collection<Film> films) {
         for (Film film : films) {
             fillGenres(film);
+        }
+    }
+
+    private void fillLikes(Film film) {
+        String sql = "SELECT user_id FROM likes WHERE film_id = ? ORDER BY user_id";
+        List<Integer> userIds = jdbcTemplate.queryForList(sql, Integer.class, film.getId());
+        film.setLikes(new LinkedHashSet<>(userIds));
+    }
+
+    private void fillLikesForFilms(Collection<Film> films) {
+        for (Film film : films) {
+            fillLikes(film);
         }
     }
 
