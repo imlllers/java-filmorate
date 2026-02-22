@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.ReviewVotesStorage;
@@ -16,12 +18,23 @@ public class ReviewService {
     private final ReviewVotesStorage reviewVotesStorage;
     private final FilmService filmService;
     private final UserService userService;
+    private final EventService eventService;
 
     public Review create(Review review) {
         validateReview(review);
         filmService.findById(review.getFilmId());
         userService.findById(review.getUserId());
-        return reviewStorage.create(review);
+
+        Review created = reviewStorage.create(review);
+
+        eventService.createEvent(
+                created.getUserId(),
+                EventType.REVIEW,
+                Operation.ADD,
+                created.getId()
+        );
+
+        return created;
     }
 
     public Review update(Review review) {
@@ -30,12 +43,30 @@ public class ReviewService {
         }
         validateReview(review);
         reviewStorage.findById(review.getId());
-        return reviewStorage.update(review);
+
+        Review updated = reviewStorage.update(review);
+
+        eventService.createEvent(
+                updated.getUserId(),
+                EventType.REVIEW,
+                Operation.UPDATE,
+                updated.getId()
+        );
+
+        return updated;
     }
 
     public void delete(Integer id) {
-        reviewStorage.findById(id);
+        Review review = reviewStorage.findById(id);
         reviewStorage.delete(id);
+
+        // 🔹 Логирование события
+        eventService.createEvent(
+                review.getUserId(),
+                EventType.REVIEW,
+                Operation.REMOVE,
+                id
+        );
     }
 
     public Review findById(Integer id) {
