@@ -4,8 +4,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
@@ -23,6 +25,7 @@ public class FilmService {
     private final GenreStorage genreStorage;
     private final LikesStorage likesStorage;
     private final DirectorStorage directorStorage;
+    private final EventService eventService;
     private static final LocalDate FIRST_DATE = LocalDate.of(1895, 12, 28);
 
     public Film create(Film film) {
@@ -54,12 +57,16 @@ public class FilmService {
         findById(id);
         userService.findById(userId);
         likesStorage.addLike(id, userId);
+
+        eventService.createEvent(userId, EventType.LIKE, Operation.ADD, id);
     }
 
     public void removeLike(Integer id, Integer userId) {
         findById(id);
         userService.findById(userId);
         likesStorage.removeLike(id, userId);
+
+        eventService.createEvent(userId, EventType.LIKE, Operation.REMOVE, id);
     }
 
     public List<Film> getTopFilms(int count) {
@@ -107,6 +114,8 @@ public class FilmService {
         filmStorage.removeAllGenres(id);
 
         filmStorage.delete(id);
+
+        eventService.createEvent(null, EventType.FILM, Operation.REMOVE, id);
     }
 
     public Film removeDirectorFromFilm(Integer filmId, Integer directorId) {
