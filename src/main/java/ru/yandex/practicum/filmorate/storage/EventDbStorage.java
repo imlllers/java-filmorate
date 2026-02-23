@@ -37,7 +37,7 @@ public class EventDbStorage implements EventStorage {
                 SELECT event_id, user_id, event_type, operation, entity_id, timestamp
                 FROM events
                 WHERE user_id = ?
-                ORDER BY timestamp ASC
+                ORDER BY event_id ASC
                 """;
 
         return jdbcTemplate.query(sql, eventRowMapper, userId);

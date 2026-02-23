@@ -114,8 +114,6 @@ public class FilmService {
         filmStorage.removeAllGenres(id);
 
         filmStorage.delete(id);
-
-        eventService.createEvent(null, EventType.FILM, Operation.REMOVE, id);
     }
 
     public Film removeDirectorFromFilm(Integer filmId, Integer directorId) {

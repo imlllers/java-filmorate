@@ -182,20 +182,13 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN likes l ON f.id = l.film_id " +
                 "WHERE fg.genre_id = ? AND YEAR(f.releaseDate) = ? " +
                 "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, f.mpa_id, m.id, m.name " +
-                "ORDER BY likes_count DESC";
+                "ORDER BY likes_count DESC, f.id ASC " +
+                "LIMIT ?";
 
-        if (count >= 10) {
-            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, genre.getId(), year);
-            fillGenresForFilms(films);
-            fillDirectorsForFilms(films);
-            return films;
-        } else {
-            sql += " LIMIT ?";
-            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, genre.getId(), year, count);
-            fillGenresForFilms(films);
-            fillDirectorsForFilms(films);
-            return films;
-        }
+        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, genre.getId(), year, count);
+        fillGenresForFilms(films);
+        fillDirectorsForFilms(films);
+        return films;
     }
 
     @Override
@@ -207,20 +200,13 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN likes l ON f.id = l.film_id " +
                 "WHERE fg.genre_id = ? " +
                 "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, f.mpa_id, m.id, m.name " +
-                "ORDER BY likes_count DESC";
+                "ORDER BY likes_count DESC, f.id ASC " +
+                "LIMIT ?";
 
-        if (count >= 10) {
-            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, genre.getId());
-            fillGenresForFilms(films);
-            fillDirectorsForFilms(films);
-            return films;
-        } else {
-            sql += " LIMIT ?";
-            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, genre.getId(), count);
-            fillGenresForFilms(films);
-            fillDirectorsForFilms(films);
-            return films;
-        }
+        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, genre.getId(), count);
+        fillGenresForFilms(films);
+        fillDirectorsForFilms(films);
+        return films;
     }
 
     @Override
@@ -231,20 +217,13 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN likes l ON f.id = l.film_id " +
                 "WHERE YEAR(f.releaseDate) = ? " +
                 "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, f.mpa_id, m.id, m.name " +
-                "ORDER BY likes_count DESC";
+                "ORDER BY likes_count DESC, f.id ASC " +
+                "LIMIT ?";
 
-        if (count >= 10) {
-            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, year);
-            fillGenresForFilms(films);
-            fillDirectorsForFilms(films);
-            return films;
-        } else {
-            sql += " LIMIT ?";
-            List<Film> films = jdbcTemplate.query(sql, filmRowMapper, year, count);
-            fillGenresForFilms(films);
-            fillDirectorsForFilms(films);
-            return films;
-        }
+        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, year, count);
+        fillGenresForFilms(films);
+        fillDirectorsForFilms(films);
+        return films;
     }
 
     @Override
