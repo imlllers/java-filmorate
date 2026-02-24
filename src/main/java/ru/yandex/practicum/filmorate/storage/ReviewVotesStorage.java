@@ -35,15 +35,4 @@ public class ReviewVotesStorage {
         String sql = "DELETE FROM review_votes WHERE review_id = ? AND user_id = ? AND vote = ?";
         jdbcTemplate.update(sql, reviewId, userId, DISLIKE);
     }
-
-    public void removeAllReviewVotes(Integer reviewId) {
-        String sql = "DELETE FROM review_votes WHERE review_id = ?";
-        jdbcTemplate.update(sql, reviewId);
-    }
-
-    public int getUseful(Integer reviewId) {
-        String sql = "SELECT COALESCE(SUM(vote), 0) FROM review_votes WHERE review_id = ?";
-        Integer result = jdbcTemplate.queryForObject(sql, Integer.class, reviewId);
-        return result != null ? result : 0;
-    }
 }

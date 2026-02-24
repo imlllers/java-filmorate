@@ -228,8 +228,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findCommonFilms(Integer userId, Integer friendId) {
-        String sql = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, " +
-                "f.mpa_id, m.name AS mpa_name " +
+        String sql = "SELECT f.*, m.name AS mpa_name " +
                 "FROM films f " +
                 "LEFT JOIN mpa m ON f.mpa_id = m.id " +
                 "JOIN likes l1 ON f.id = l1.film_id AND l1.user_id = ? " +

@@ -76,15 +76,7 @@ public class UserService {
     public List<Film> getRecommendations(Integer userId) {
         findById(userId);
         int similarUserId = likesStorage.findSimilarUser(userId);
-        List<Integer> filmIds = likesStorage.findRecommendedFilm(userId, similarUserId);
-
-        if (filmIds.isEmpty()) {
-            return List.of();
-        }
-
-        return filmIds.stream()
-                .map(filmStorage::findById)
-                .toList();
+        return likesStorage.findRecommendedFilm(userId, similarUserId);
     }
 
     public void deleteUser(Integer userId) {

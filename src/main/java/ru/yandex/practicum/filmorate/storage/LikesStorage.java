@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
 
 import java.util.List;
 
@@ -10,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class LikesStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final FilmRowMapper filmRowMapper = new FilmRowMapper();
 
     public void addLike(Integer filmId, Integer userId) {
         String sql = "MERGE INTO likes (user_id, film_id) KEY (user_id, film_id) VALUES (?, ?)";
@@ -58,12 +61,16 @@ public class LikesStorage {
         return userIds.getFirst();
     }
 
-    public List<Integer> findRecommendedFilm(int userId, int similarUserId) {
+    public List<Film> findRecommendedFilm(int userId, int similarUserId) {
         if (similarUserId == -1) {
             return List.of();
         }
 
-        String sql = "SELECT similar_like.film_id " +
+        String sql = "SELECT f.*, m.name AS mpa_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "WHERE f.id IN ( " +
+                "SELECT similar_like.film_id " +
                 "FROM likes AS similar_like " +
                 "WHERE similar_like.user_id = ? " +
                 "AND NOT EXISTS ( " +
@@ -72,8 +79,9 @@ public class LikesStorage {
                 "WHERE current_like.user_id = ? " +
                 "AND current_like.film_id = similar_like.film_id " +
                 ") " +
-                "ORDER BY similar_like.film_id; ";
+                ") " +
+                "ORDER BY f.id";
 
-        return jdbcTemplate.queryForList(sql, Integer.class, similarUserId, userId);
+        return jdbcTemplate.query(sql, filmRowMapper, similarUserId, userId);
     }
 }
