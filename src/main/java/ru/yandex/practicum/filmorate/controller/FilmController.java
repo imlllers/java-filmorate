@@ -77,15 +77,8 @@ public class FilmController {
 
     @DeleteMapping("/{id}/like/{userId}")
     public void removeLike(
-            @PathVariable
-            @NotNull(message = "ID фильма не может быть пустым")
-            @Positive(message = "ID фильма должен быть положительным")
-            Integer id,
-
-            @PathVariable
-            @NotNull(message = "ID пользователя не может быть пустым")
-            @Positive(message = "ID пользователя должен быть положительным")
-            Integer userId) {
+            @PathVariable Integer id,
+            @PathVariable Integer userId) {
 
         log.info("Удаление лайка");
         filmService.removeLike(id, userId);
