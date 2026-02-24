@@ -42,6 +42,8 @@ public class ReviewService {
             throw new ValidationException("Id отзыва должен быть указан");
         }
         validateReview(review);
+        filmService.findById(review.getFilmId());
+        userService.findById(review.getUserId());
         reviewStorage.findById(review.getId());
 
         Review updated = reviewStorage.update(review);
@@ -60,7 +62,6 @@ public class ReviewService {
         Review review = reviewStorage.findById(id);
         reviewStorage.delete(id);
 
-        // 🔹 Логирование события
         eventService.createEvent(
                 review.getUserId(),
                 EventType.REVIEW,
