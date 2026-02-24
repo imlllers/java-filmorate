@@ -13,7 +13,7 @@ import java.util.List;
 public class EventDbStorage implements EventStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final EventRowMapper eventRowMapper; // 🔥 внедряем через Spring
+    private final EventRowMapper eventRowMapper;
 
     @Override
     public void addEvent(Event event) {
@@ -24,8 +24,8 @@ public class EventDbStorage implements EventStorage {
 
         jdbcTemplate.update(sql,
                 event.getUserId(),
-                event.getEventType().name(),  // 🔥 Enum → String
-                event.getOperation().name(),  // 🔥 Enum → String
+                event.getEventType().name(),
+                event.getOperation().name(),
                 event.getEntityId(),
                 event.getTimestamp()
         );
