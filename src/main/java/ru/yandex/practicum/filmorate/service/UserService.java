@@ -81,11 +81,6 @@ public class UserService {
 
     public void deleteUser(Integer userId) {
         findById(userId);
-
-        likesStorage.removeAllUserLikes(userId);
-
-        friendsStorage.removeAllUserFriends(userId);
-
         userStorage.delete(userId);
     }
 

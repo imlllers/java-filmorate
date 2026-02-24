@@ -32,6 +32,4 @@ public interface FilmStorage {
     Film removeDirectorFromFilm(Integer filmId, Integer directorId);
 
     void delete(Integer id);
-
-    void removeAllGenres(Integer filmId);
 }

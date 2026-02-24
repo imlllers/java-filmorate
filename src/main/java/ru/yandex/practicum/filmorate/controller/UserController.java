@@ -75,7 +75,6 @@ public class UserController {
         return userService.getRecommendations(id);
     }
 
-
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Integer id) {
         log.info("Удаление пользователя с id={}", id);
@@ -85,7 +84,7 @@ public class UserController {
     @GetMapping("/{id}/feed")
     public List<EventResponseDto> getUserFeed(@PathVariable Integer id) {
         log.info("Получение ленты событий для пользователя id={}", id);
-        userService.findById(id); // проверка существования пользователя
+        userService.findById(id);
         return eventService.getUserFeed(id);
     }
 }

@@ -109,10 +109,6 @@ public class FilmService {
     @Transactional
     public void deleteFilm(Integer id) {
         findById(id);
-
-        likesStorage.removeAllFilmLikes(id);
-        filmStorage.removeAllGenres(id);
-
         filmStorage.delete(id);
     }
 
