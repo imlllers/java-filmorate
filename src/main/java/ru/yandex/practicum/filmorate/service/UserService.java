@@ -3,8 +3,13 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.FriendsStorage;
+import ru.yandex.practicum.filmorate.storage.LikesStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
@@ -16,6 +21,9 @@ import java.util.List;
 public class UserService {
     private final UserStorage userStorage;
     private final FriendsStorage friendsStorage;
+    private final LikesStorage likesStorage;
+    private final FilmStorage filmStorage;
+    private final EventService eventService;
 
     public User create(User user) {
         validateUser(user);
@@ -42,12 +50,16 @@ public class UserService {
         findById(id);
         findById(friendId);
         friendsStorage.addFriend(id, friendId);
+
+        eventService.createEvent(id, EventType.FRIEND, Operation.ADD, friendId);
     }
 
     public void deleteFriend(Integer id, Integer friendId) {
         findById(id);
         findById(friendId);
         friendsStorage.removeFriend(id, friendId);
+
+        eventService.createEvent(id, EventType.FRIEND, Operation.REMOVE, friendId);
     }
 
     public List<User> getFriends(Integer userId) {
@@ -59,6 +71,20 @@ public class UserService {
         findById(userId);
         findById(otherId);
         return friendsStorage.getCommonFriends(userId, otherId);
+    }
+
+    public List<Film> getRecommendations(Integer userId) {
+        findById(userId);
+        int similarUserId = likesStorage.findSimilarUser(userId);
+        return likesStorage.findRecommendedFilm(userId, similarUserId)
+                .stream()
+                .map(film -> filmStorage.findById(film.getId()))
+                .toList();
+    }
+
+    public void deleteUser(Integer userId) {
+        findById(userId);
+        userStorage.delete(userId);
     }
 
     private void validateUser(User user) {
